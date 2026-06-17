@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 合并六路研究流结果，生成 Review 检查点摘要。
-统计各流来源数、关键发现、认知提取进度、数据缺口。
+统计各流来源数、关键发现、认知提取进度、上下文交接卡、数据缺口。
 """
 
 import sys
@@ -83,7 +83,7 @@ def main():
 
     files, rows = {}, []
     total_urls = total_primary = total_secondary = 0
-    missing, cognitive_progress = [], []
+    missing, missing_context, cognitive_progress = [], [], []
 
     for key, label in STREAMS.items():
         base_pat = f"{args.company}_{key}" if args.company else f"*{key}*"
@@ -91,6 +91,10 @@ def main():
         cog_suffix = COG_SUFFIX.get(key, f"{key}_cognitive")
         cog_pat = f"{args.company}_{cog_suffix}.md" if args.company else f"*{cog_suffix}.md"
         cog_file = next(rdir.glob(cog_pat), None)
+        card_pat = f"{args.company}_{key}_context_card.md" if args.company else f"*{key}_context_card.md"
+        card_file = next(rdir.glob(card_pat), None)
+        if not card_file:
+            missing_context.append(label)
 
         if not raw_file:
             missing.append(label)
@@ -143,6 +147,10 @@ def main():
         print("\n认知提取进度:")
         for p in cognitive_progress:
             print(f"  {p}")
+    if missing_context:
+        print("\n上下文交接卡缺失:")
+        for label in missing_context:
+            print(f"  {label}: MISSING context_card")
 
     if total_urls < 5:
         print("\nWARN: 总来源数 <5，建议补充调研")

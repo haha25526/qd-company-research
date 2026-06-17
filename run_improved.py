@@ -4,7 +4,7 @@ qd-company-research 通用入口。
 
 当前职责：
 1. 确认目标公司身份与研究目录。
-2. 检查已有六路研究文件和 cognitive 文件。
+2. 检查已有六路研究文件、cognitive 文件和 context_card 文件。
 3. 调用 merge_research.py 生成阶段性 Review。
 4. 调用 extract_mental_models.py 生成公司认知 Skill。
 
@@ -58,26 +58,30 @@ def run_command(args: list[str]) -> int:
     return completed.returncode
 
 
-def expected_files(company: str, research_dir: Path) -> tuple[list[Path], list[Path]]:
+def expected_files(company: str, research_dir: Path) -> tuple[list[Path], list[Path], list[Path]]:
     raw_files = [research_dir / f"{company}_{key}.md" for key in STREAMS]
     cognitive_files = [research_dir / f"{company}_{key}_cognitive.md" for key in STREAMS]
-    return raw_files, cognitive_files
+    context_cards = [research_dir / f"{company}_{key}_context_card.md" for key in STREAMS]
+    return raw_files, cognitive_files, context_cards
 
 
-def show_file_status(company: str, research_dir: Path) -> tuple[list[Path], list[Path]]:
-    raw_files, cognitive_files = expected_files(company, research_dir)
+def show_file_status(company: str, research_dir: Path) -> tuple[list[Path], list[Path], list[Path]]:
+    raw_files, cognitive_files, context_cards = expected_files(company, research_dir)
     missing_raw = [path for path in raw_files if not path.exists()]
     missing_cognitive = [path for path in cognitive_files if not path.exists()]
+    missing_context = [path for path in context_cards if not path.exists()]
 
     print_header("研究文件检查")
     for key, label in STREAMS.items():
         raw_path = research_dir / f"{company}_{key}.md"
         cog_path = research_dir / f"{company}_{key}_cognitive.md"
+        card_path = research_dir / f"{company}_{key}_context_card.md"
         raw_status = "OK" if raw_path.exists() else "MISSING"
         cog_status = "OK" if cog_path.exists() else "MISSING"
-        print(f"{label:<10} raw={raw_status:<7} cognitive={cog_status:<7}")
+        card_status = "OK" if card_path.exists() else "MISSING"
+        print(f"{label:<10} raw={raw_status:<7} cognitive={cog_status:<7} context={card_status:<7}")
 
-    return missing_raw, missing_cognitive
+    return missing_raw, missing_cognitive, missing_context
 
 
 def show_identity(args: argparse.Namespace, research_dir: Path) -> None:
@@ -128,7 +132,7 @@ def main() -> int:
         print("已停止。请补充公司信息或修正研究目录后重试。")
         return 1
 
-    missing_raw, missing_cognitive = show_file_status(args.company, research_dir)
+    missing_raw, missing_cognitive, missing_context = show_file_status(args.company, research_dir)
     if missing_raw:
         print("\n缺失原始研究文件:")
         for path in missing_raw:
@@ -136,6 +140,10 @@ def main() -> int:
     if missing_cognitive:
         print("\n缺失认知提取文件:")
         for path in missing_cognitive:
+            print(f"  - {path.name}")
+    if missing_context:
+        print("\n缺失上下文交接卡（建议补齐，不阻断已有流程）:")
+        for path in missing_context:
             print(f"  - {path.name}")
 
     if (missing_raw or missing_cognitive) and not args.allow_missing:
