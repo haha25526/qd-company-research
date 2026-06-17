@@ -17,14 +17,21 @@
 ## 使用方式
 
 ```bash
-用 qd-company-research 研究一下 [公司名或股票代码]
+python run_improved.py [company] --research-dir output
 ```
 
-系统自动并行执行 6 个研究流（财务/业务/战略/领导思维/批判/文化），完成后：
-1. 展示采集 Review（来源数、关键发现、认知提取进度）
-2. 进行认知验证（用已知决策测试思维模型预测能力）
-3. 生成 `company-skill.md` 和 Web Report
-4. 询问归档方式（飞书知识库 / 更新千丁上下文 / 生成 Obsidian 卡片）
+当前入口处理**已有研究文件**，不自动启动六路采集。流程为：
+1. 确认公司身份和研究目录
+2. 检查 6 路研究文件和 cognitive 文件是否齐全
+3. 展示采集 Review（来源数、关键发现、认知提取进度）
+4. 对 cognitive 文件进行三重验证
+5. 生成 `company-skill.md`
+
+如果只想生成阶段性 Review：
+
+```bash
+python run_improved.py [company] --research-dir output --review-only
+```
 
 ---
 
@@ -71,7 +78,7 @@ source: qd-company-research
 4. 千丁启示（认知迁移、风险对照、决策模式参考）
 5. **认知层可视化**（D3.js 思维网络图、决策启发式卡片、验证状态标色）
 
-技术栈：React 18 + Tailwind + Chart.js + D3.js，单 HTML 文件，部署至 `/var/www/proletson.me/html/`
+Web Report 目前是目标产物设计，尚未由 `run_improved.py` 自动生成。若需要交付 HTML，应基于已生成的 `company-skill.md` 和研究文件另行生成。
 
 ---
 
@@ -93,4 +100,4 @@ source: qd-company-research
 
 ---
 
-**项目路径**：`~/.openclaw/workspace/skills/qd-company-research/`
+**默认研究目录**：仓库内 `output/`，也可以通过 `--research-dir` 指定。

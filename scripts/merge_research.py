@@ -9,6 +9,9 @@ import re
 import argparse
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(errors="replace")
+
 STREAMS = {
     'financials': 'A 财务', 'business': 'B 业务', 'strategy': 'C 战略',
     'stream_D': 'D 领导思维', 'stream_E': 'E 批判视角', 'stream_F': 'F 文化符号',
@@ -75,7 +78,7 @@ def main():
 
     rdir = Path(args.research_dir)
     if not rdir.exists():
-        print(f"❌ 目录不存在: {rdir}")
+        print(f"[FAIL] 目录不存在: {rdir}")
         sys.exit(1)
 
     files, rows = {}, []
@@ -91,7 +94,7 @@ def main():
 
         if not raw_file:
             missing.append(label)
-            rows.append(f"│ {label:<12} │ {'❌ 缺失':<8} │ {'—':<24} │ {'—':<12} │")
+            rows.append(f"│ {label:<12} │ {'MISSING':<8} │ {'—':<24} │ {'—':<12} │")
             continue
 
         content = files[key] = raw_file.read_text(encoding='utf-8')
@@ -137,12 +140,12 @@ def main():
     print("└──────────────┴──────────┴──────────────────────────┴──────────────────┘")
 
     if cognitive_progress:
-        print("\n🧠 认知提取进度:")
+        print("\n认知提取进度:")
         for p in cognitive_progress:
             print(f"  {p}")
 
     if total_urls < 5:
-        print("\n⚠️ 总来源数 <5，建议补充调研")
+        print("\nWARN: 总来源数 <5，建议补充调研")
 
 
 if __name__ == '__main__':
